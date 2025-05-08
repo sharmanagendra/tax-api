@@ -111,5 +111,13 @@ def chat():
 @app.route("/chat")
 def serve_chat():
     return send_from_directory("static", "chat.html")
+    from flask import Flask, send_from_directory
+
+app = Flask(__name__, static_folder='static')
+
+@app.route("/chat")
+def serve_chat():
+    return send_from_directory(app.static_folder, "chat.html")
+
 
 
