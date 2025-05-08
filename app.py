@@ -108,9 +108,7 @@ def chat():
         reply = f"Failed to understand your input. Error: {str(e)}"
 
     return jsonify({"response": reply})
-@app.route("/chat")
-def serve_chat():
-    return send_from_directory("static", "chat.html")
+
     from flask import Flask, send_from_directory
 
 app = Flask(__name__, static_folder='static')
@@ -118,6 +116,10 @@ app = Flask(__name__, static_folder='static')
 @app.route("/chat")
 def serve_chat():
     return send_from_directory(app.static_folder, "chat.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 
 
 
