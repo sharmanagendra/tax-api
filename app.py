@@ -108,4 +108,8 @@ def chat():
         reply = f"Failed to understand your input. Error: {str(e)}"
 
     return jsonify({"response": reply})
+@app.route("/chat")
+def serve_chat():
+    return send_from_directory("static", "chat.html")
+
 
