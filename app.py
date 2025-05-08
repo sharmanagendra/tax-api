@@ -56,3 +56,56 @@ def calculate_tax():
         "deductions": round(deductions),
         "tips": tips
     })
+
+import openai
+import os
+import requests
+from flask import request, jsonify
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+TAX_API_URL = "https://tax-api-mwr6.onrender.com/calculate"
+
+@app.route('/chat', methods=["POST"])
+def chat():
+    user_message = request.json.get("message", "")
+
+    prompt = """
+    Extract this information from the user's message:
+    - annual_salary (number)
+    - insurance_80c (number)
+    - home_loan_interest (number)
+    - rent_paid (number)
+    - city_type ("metro" or "non-metro")
+
+    Output only a JSON object with those fields.
+    """
+
+    # Step 1: Use GPT to parse the message
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_message}
+        ],
+        temperature=0.3
+    )
+
+    try:
+        parsed_data = eval(response.choices[0].message['content'])
+
+        # Step 2: Call /calculate API
+        tax_response = requests.post(TAX_API_URL, json=parsed_data)
+
+        if tax_response.status_code == 200:
+            result = tax_response.json()
+            reply = f"Your taxable income is ₹{result['taxable_income']:,}. Tax payable is ₹{result['tax_payable']:,}."
+            if result.get("tips"):
+                reply += "\nSuggestions:\n" + "\n".join(result["tips"])
+        else:
+            reply = "Sorry, I couldn't calculate your tax right now."
+
+    except Exception as e:
+        reply = f"Failed to understand your input. Error: {str(e)}"
+
+    return jsonify({"response": reply})
+
